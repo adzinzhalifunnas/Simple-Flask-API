@@ -31,7 +31,7 @@ def index():
 @app.route('/api/validate', methods=['GET'])
 def validate():
     apikey = request.args.get('apikey')
-    if Important(apikeyList).validateApiKey(apikeyList, apikey):
+    if Important(apikeyList).validateApiKey(apikey):
         return outputJson({'code': 200, 'result': True})
     else:
         return outputJson({'code': 401, 'result': False})
@@ -39,8 +39,8 @@ def validate():
 @app.route('/api/premium', methods=['GET'])
 def premium():
     apikey = request.args.get('apikey')
-    if Important(apikeyList).validateApiKey(apikeyList, apikey):
-        if Important(apikeyList).validatePremium(apikeyList, apikey):
+    if Important(apikeyList).validateApiKey(apikey):
+        if Important(apikeyList).validatePremium(apikey):
             return outputJson({'code': 200, 'result': True})
         else:
             return outputJson({'code': 200, 'result': False})
@@ -50,9 +50,9 @@ def premium():
 @app.route('/api/premium/expire', methods=['GET'])
 def premiumExpire():
     apikey = request.args.get('apikey')
-    if Important(apikeyList).validateApiKey(apikeyList, apikey):
-        if Important(apikeyList).validatePremium(apikeyList, apikey):
-            return outputJson({'code': 200, 'result': {"isPremium": True, "message": "Your premium will expire on " + Important(apikeyList).checkPremiumExpires(apikeyList, apikey)}})
+    if Important(apikeyList).validateApiKey(apikey):
+        if Important(apikeyList).validatePremium(apikey):
+            return outputJson({'code': 200, 'result': {"isPremium": True, "message": "Your premium will expire on " + Important(apikeyList).checkPremiumExpires(apikey)}})
         else:
             return outputJson({'code': 200, 'result': {"isPremium": False, "message": "Your account is not premium or your premium has expired"}})
     else:
@@ -62,7 +62,7 @@ def premiumExpire():
 def kbbi():
     apikey = request.args.get('apikey')
     type = request.args.get('type')
-    if Important(apikeyList).validateApiKey(apikeyList, apikey):
+    if Important(apikeyList).validateApiKey(apikey):
         if type == "page":
             page = request.args.get('page')
             if page == None or not page.isdigit():
