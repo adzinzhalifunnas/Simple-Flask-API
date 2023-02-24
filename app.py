@@ -85,6 +85,32 @@ def kbbi():
                 except Exception as e:
                     logError(e)
                     return outputJson({'code': 500, 'result': {"message": "Error from server"}})
+        elif type == "word":
+            if Important(apikeyList).validatePremium(apikey):
+                word = request.args.get('word')
+                if word == None:
+                    return outputJson({'code': 500, 'result': {"message": "Invalid parameter. Need: word (string)"}})
+                else:
+                    try:
+                        with requests.session() as web:
+                            web.headers['User-Agent'] = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
+                            web = web.get("https://www.kbbi.co.id/arti-kata/{}".format(str(word)))
+                            data = BeautifulSoup(web.content, "lxml")
+                            result = []
+                            for i in data.findAll("div", {"class":"row"}):
+                                for j in i.findAll("div", {"class":"col-sm-8"}):
+                                    for k in j.findAll("p", {"class":"arti"}):
+                                        definitions = k.text
+                                        result.append({"word": word, "description": "Arti kata, ejaan, dan contoh penggunaan kata %s menurut Kamus Besar Bahasa Indonesia (KBBI)."%(word), "definition": definitions})
+                            if result == []:
+                                return outputJson({'code': 200, 'result': {"message": "Word '%s' not found"%(word)}})
+                            else:
+                                return outputJson({'code': 200, 'result': result})
+                    except Exception as e:
+                        logError(e)
+                        return outputJson({'code': 500, 'result': {"message": "Error from server"}})
+            else:
+                return outputJson({'code': 200, 'result': {"message": "This feature is only available for premium users"}})
         else:
             return outputJson({'code': 500, 'result': {"message": "Invalid type"}})
     else:
