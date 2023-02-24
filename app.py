@@ -2,7 +2,8 @@ from flask import Flask, request, jsonify
 from threading import Thread
 from datetime import datetime
 from important import Important
-import asyncio, livejson
+from bs4 import BeautifulSoup
+import asyncio, livejson, requests, traceback
 
 loop = asyncio.get_event_loop()
 app = Flask(__name__)
@@ -16,6 +17,12 @@ def messageOutput(code):
 
 def outputJson(data):
     return jsonify({'code': data['code'], 'message': messageOutput(data['code']), 'result': data['result']})
+
+def logError(error, write=True):
+        result = traceback.format_exc()
+        if write:
+            with open('logError.txt', 'a') as f:
+                f.write("\n%s"%result)
 
 @app.route('/')
 def index():
@@ -48,6 +55,38 @@ def premiumExpire():
             return outputJson({'code': 200, 'result': {"isPremium": True, "message": "Your premium will expire on " + Important(apikeyList).checkPremiumExpires(apikeyList, apikey)}})
         else:
             return outputJson({'code': 200, 'result': {"isPremium": False, "message": "Your account is not premium or your premium has expired"}})
+    else:
+        return outputJson({'code': 401, 'result': False})
+
+@app.route('/api/kbbi', methods=['GET'])
+def kbbi():
+    apikey = request.args.get('apikey')
+    type = request.args.get('type')
+    if Important(apikeyList).validateApiKey(apikeyList, apikey):
+        if type == "page":
+            page = request.args.get('page')
+            if page == None or not page.isdigit():
+                return outputJson({'code': 500, 'result': {"message": "Invalid parameter. Need: page (int)"}})
+            else:
+                try:
+                    with requests.session() as web:
+                        web.headers['User-Agent'] = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
+                        web = web.get("https://www.kbbi.co.id/daftar-kata?page={}".format(str(page)))
+                        data = BeautifulSoup(web.content, "lxml")
+                        result = []
+                        for i in data.findAll("div", {"class":"row"}):
+                            for j in i.findAll("div", {"class":"col-md-2 col-sm-3 col-xs-4"}):
+                                for k in j.findAll("ul"):
+                                    for l in k.findAll("li"):
+                                        words = l.a.text
+                                        urls = l.a['href']
+                                        result.append({"word": words, "url": urls})
+                        return outputJson({'code': 200, 'result': result})
+                except Exception as e:
+                    logError(e)
+                    return outputJson({'code': 500, 'result': {"message": "Error from server"}})
+        else:
+            return outputJson({'code': 500, 'result': {"message": "Invalid type"}})
     else:
         return outputJson({'code': 401, 'result': False})
 

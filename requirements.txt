@@ -2,3 +2,5 @@ flask
 asyncio
 livejson
 datetime
+requests
+bs4
