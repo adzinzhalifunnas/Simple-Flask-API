@@ -1,5 +1,7 @@
 # Simple Flask API
 
+This is a simple Flask API that can be used as a template for your own projects. It has a simple user authentication system, a database, and a few routes to get you started.
+
 ## Getting Started
 
 ### Installation
@@ -21,3 +23,8 @@
    http://127.0.0.1:5000
    ```
 5. Enjoy!
+
+
+### Creator
+
+* [Adzin Zhalifunnas (Dzin)](https://adzinz.com)
